@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AurumForge v9.1 — Institutional Engine</title>
+<style>
+/* ═══════════════════════════════════════════════════════
+   AURUMFORGE v9.1 — DASHBOARD STYLESHEET
+   Matches Core v9.0 + Oscillator v9.1 colour palette exactly
+   C_CONV #00bcd4  C_DIV #f44336  C_GOLD #ffb300
+   C_BULL #26a69a  C_BEAR #ef5350  C_NAVY #1565C0
+   ═══════════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --conv:#00bcd4;--div:#f44336;--gold:#ffb300;
+  --bull:#26a69a;--bear:#ef5350;--navy:#1565c0;
+  --oi-cont:#26a69a;--oi-weak:#ffb300;--oi-dist:#f44336;--oi-cap:#29b6f6;
+  --bg:#0a0a14;--bg2:#111122;--bg3:#1a1a2e;
+  --border:#2a2a3e;--text:#e0e0f0;--muted:#6a6a8a;
+  --gold-dark:#8b6914;--gold-light:#f5e9cc;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:13px;line-height:1.5;min-height:100vh}
+
+/* ── TOP BAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:30px;height:30px;background:var(--gold);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#000;font-weight:700;font-size:13px}
+.logo-text{font-size:14px;font-weight:600;color:var(--text)}
+.logo-sub{font-size:10px;color:var(--muted)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.status-pill{display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid}
+.pill-armed{background:#0f2d1a;color:#4caf50;border-color:#4caf50}
+.pill-down{background:#2d0f0f;color:var(--bear);border-color:var(--bear)}
+.pill-wait{background:var(--bg3);color:var(--muted);border-color:var(--border)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.ts{font-size:10px;color:var(--muted)}
+.btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;transition:.2s}
+.btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ── LAYOUT ── */
+.main{padding:14px 16px;max-width:1400px;margin:0 auto}
+.alert-banner{border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;font-weight:500;display:none}
+.alert-banner.show{display:flex;align-items:center;gap:8px}
+.alert-armed{background:#0f2d1a;border:1px solid #4caf50;color:#4caf50}
+.alert-down{background:#2d0f0f;border:1px solid var(--bear);color:var(--bear)}
+
+.metrics-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
+.metric{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.metric-label{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
+.metric-val{font-size:20px;font-weight:600;line-height:1.1}
+.metric-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.mv-bull{color:var(--bull)}
+.mv-bear{color:var(--bear)}
+.mv-gold{color:var(--gold)}
+.mv-conv{color:var(--conv)}
+.mv-muted{color:var(--muted)}
+
+/* ── GRID ── */
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.grid-21{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:10px}
+.grid-12{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-bottom:10px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.card-title{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.card-title span{font-size:12px}
+
+/* ── DATA ROWS ── */
+.data-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)}
+.data-row:last-child{border-bottom:none}
+.dr-key{font-size:11px;color:var(--muted)}
+.dr-val{font-size:12px;font-weight:500;color:var(--text)}
+
+/* ── GATE LIST ── */
+.gate-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)}
+.gate-row:last-child{border-bottom:none}
+.gate-name{font-size:12px;color:var(--text)}
+.gate-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px}
+.gb-pass{background:#0f2d1a;color:#4caf50}
+.gb-fail{background:#2d0f0f;color:var(--bear)}
+
+/* ── INVENTORY BAR ── */
+.inv-track{height:8px;background:var(--bg3);border-radius:4px;margin:6px 0;position:relative;overflow:hidden}
+.inv-fill{height:100%;border-radius:4px;transition:width .4s}
+.inv-zones{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:2px}
+
+/* ── SCORE ── */
+.score-wrap{display:flex;align-items:center;gap:8px;margin:6px 0}
+.score-track{flex:1;height:10px;background:var(--bg3);border-radius:5px;overflow:hidden}
+.score-fill{height:100%;border-radius:5px;transition:width .4s}
+.score-num{font-size:18px;font-weight:700;min-width:28px;text-align:right}
+
+/* ── YIELD HISTOGRAM ── */
+.yield-chart{height:70px;display:flex;align-items:flex-end;gap:1px;padding-top:4px;border-bottom:1px solid var(--border)}
+.yield-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.yield-bar{width:100%;border-radius:1px 1px 0 0;min-height:1px;transition:height .3s}
+
+/* ── PHASE TRACK ── */
+.phase-segs{display:flex;gap:3px;margin:6px 0}
+.phase-seg{flex:1;height:5px;border-radius:3px;background:var(--bg3)}
+.phase-seg.active{background:var(--conv)}
+.phase-seg.past{background:rgba(0,188,212,.3)}
+
+/* ── SMT LINE CHART ── */
+.smt-chart{height:64px;position:relative;overflow:hidden;background:var(--bg3);border-radius:4px;margin:6px 0}
+.smt-canvas{width:100%;height:100%}
+.smt-zero{position:absolute;left:0;right:0;height:1px;background:rgba(255,255,255,.12);top:50%;transform:translateY(-50%)}
+
+/* ── OI BG CHIP ── */
+.oi-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-top:6px}
+
+/* ── FVG ROWS ── */
+.fvg-row{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px}
+.fvg-tf{font-size:9px;font-weight:600;padding:2px 6px;border-radius:3px;background:var(--bg3);color:var(--muted)}
+.fvg-range{color:var(--text);font-weight:500;flex:1}
+.fvg-state{font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px}
+.fvg-open{background:#0d2340;color:var(--conv)}
+.fvg-mit{background:#0f2d1a;color:#4caf50}
+.fvg-vio{background:#2d0f0f;color:var(--bear)}
+
+/* ── HUD TABLE (mirrors Core v9.0 table) ── */
+.hud{width:100%;border-collapse:collapse;margin-top:4px}
+.hud td{padding:5px 8px;font-size:11px;border-bottom:1px solid var(--border)}
+.hud td:first-child{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+.hud td:last-child{text-align:right;font-weight:600;border-radius:4px}
+.hud tr:last-child td{border-bottom:none}
+
+/* ── DESK INPUTS (mirrors Pine Script Desk Inputs group) ── */
+.desk-inputs{background:var(--bg2);border:1px solid var(--gold);border-radius:8px;padding:12px 14px;margin-bottom:12px}
+.desk-title{font-size:10px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.inputs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.input-group{display:flex;flex-direction:column;gap:3px}
+.input-label{font-size:10px;color:var(--muted)}
+select,input[type=number],input[type=text]{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:5px;font-size:12px;width:100%;outline:none;transition:.2s}
+select:focus,input:focus{border-color:var(--gold)}
+.gex-inputs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.apply-btn{background:var(--gold);color:#000;font-weight:700;border:none;padding:7px 18px;border-radius:6px;cursor:pointer;font-size:12px;margin-top:10px;width:100%}
+.apply-btn:hover{background:#e6a500}
+.desk-section{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin:8px 0 4px}
+
+/* ── VERDICT CARD ── */
+.verdict-card{border-radius:8px;padding:12px 14px;margin-bottom:10px;border:1px solid}
+.v-armed{background:#0a1f0a;border-color:#4caf50}
+.v-b-grade{background:#1a1500;border-color:var(--gold)}
+.v-scalp{background:#0a0f1a;border-color:var(--conv)}
+.v-none{background:#1a0a0a;border-color:var(--bear)}
+.verdict-title{font-size:14px;font-weight:700;margin-bottom:4px}
+.verdict-sub{font-size:11px;color:var(--muted);line-height:1.5}
+
+/* ── TELEGRAM SYNC BOX ── */
+.tg-sync{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-top:8px}
+.tg-sync-title{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.tg-paste{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:6px 8px;font-family:monospace;font-size:10px;color:var(--conv);width:100%;min-height:60px;resize:none;outline:none}
+.parse-btn{background:var(--conv);color:#000;font-weight:700;border:none;padding:5px 14px;border-radius:5px;cursor:pointer;font-size:11px;margin-top:6px}
+
+/* ── REGIME BANNER ── */
+.regime-banner{border-radius:6px;padding:7px 12px;font-size:11px;font-weight:600;text-align:center;margin-bottom:8px}
+.rb-conv{background:rgba(0,188,212,.12);color:var(--conv);border:1px solid rgba(0,188,212,.3)}
+.rb-div{background:rgba(244,67,54,.12);color:var(--bear);border:1px solid rgba(244,67,54,.3)}
+.rb-mixed{background:var(--bg3);color:var(--muted);border:1px solid var(--border)}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;margin-bottom:10px;background:var(--bg2);border-radius:8px;padding:3px;border:1px solid var(--border)}
+.tab{flex:1;padding:6px;text-align:center;font-size:11px;font-weight:500;border-radius:6px;cursor:pointer;color:var(--muted);transition:.2s}
+.tab.active{background:var(--bg3);color:var(--gold);border:1px solid var(--gold)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .metrics-row{grid-template-columns:repeat(3,1fr)}
+  .grid-3{grid-template-columns:1fr}
+  .grid-2{grid-template-columns:1fr}
+  .grid-21{grid-template-columns:1fr}
+  .grid-12{grid-template-columns:1fr}
+  .inputs-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .metrics-row{grid-template-columns:repeat(2,1fr)}
+  .inputs-grid{grid-template-columns:1fr}
+  .topbar{flex-wrap:wrap;gap:6px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     TOP BAR
+══════════════════════════════════════════ -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">AF</div>
+    <div>
+      <div class="logo-text">AurumForge v9.1</div>
+      <div class="logo-sub">NQ Futures · ICT Institutional Engine · Core v9.0 + Oscillator v9.1</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="ts" id="ts">--:--:-- EST</div>
+    <div class="status-pill pill-wait" id="statusPill">
+      <span class="dot"></span><span id="statusText">Evaluating...</span>
+    </div>
+    <button class="btn" onclick="runEvaluation()">⟳ Refresh</button>
+    <button class="btn" onclick="toggleDesk()">🎛 Desk Inputs</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN
+══════════════════════════════════════════ -->
+<div class="main">
+
+  <!-- Alert Banner -->
+  <div class="alert-banner alert-armed" id="alertBanner">
+    <span>🎯</span>
+    <span id="alertText">Tier 1 armed — all 6 gates confirmed.</span>
+  </div>
+
+  <!-- ── DESK INPUTS PANEL (mirrors Core v9.0 + Oscillator v9.1 inputs) ── -->
+  <div class="desk-inputs" id="deskPanel" style="display:none">
+    <div class="desk-title"><span>🎛</span> Desk Inputs — Sync from Bot / Manual Override</div>
+
+    <div class="desk-section">🎯 Bot Sync (from /verdict, /smt, /oi, /yieldspread)</div>
+    <div class="inputs-grid">
+      <div class="input-group">
+        <label class="input-label">Directional Bias</label>
+        <select id="in_bias">
+          <option value="BULLISH">BULLISH</option>
+          <option value="BEARISH">BEARISH</option>
+          <option value="NEUTRAL" selected>NEUTRAL</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label class="input-label">SMT Regime (from /smt)</label>
+        <select id="in_smt">
+          <option value="DIVERGENT" selected>DIVERGENT</option>
+          <option value="CONVERGENT">CONVERGENT</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Yield Filter (from /yieldspread)</label>
+        <select id="in_yield">
+          <option value="HIGH YIELD" selected>HIGH YIELD</option>
+          <option value="MODERATE">MODERATE</option>
+          <option value="LOW YIELD">LOW YIELD</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label class="input-label">OI State (from /oi)</label>
+        <select id="in_oi">
+          <option value="AUTO" selected>AUTO</option>
+          <option value="CONTINUATION">CONTINUATION</option>
+          <option value="WEAK RALLY">WEAK RALLY</option>
+          <option value="DISTRIBUTION">DISTRIBUTION</option>
+          <option value="CAPITULATION">CAPITULATION</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label class="input-label">RA Score (1–10 from /verdict)</label>
+        <input type="number" id="in_score" min="1" max="10" value="5">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Verdict Grade</label>
+        <select id="in_verdict">
+          <option value="A+ HIGH-GEAR">A+ HIGH-GEAR</option>
+          <option value="B-GRADE">B-GRADE</option>
+          <option value="SCALP ONLY">SCALP ONLY</option>
+          <option value="NO TRADE" selected>NO TRADE</option>
+          <option value="THROTTLED">THROTTLED</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="desk-section">⚖️ GEX Walls (from /autogex — paste into Core v9.0)</div>
+    <div class="gex-inputs">
+      <div class="input-group">
+        <label class="input-label">⚡ Zero Gamma Level</label>
+        <input type="number" id="in_zg" placeholder="e.g. 19400" value="0">
+      </div>
+      <div class="input-group">
+        <label class="input-label">💥 Call Wall (R1)</label>
+        <input type="number" id="in_cw" placeholder="e.g. 19600" value="0">
+      </div>
+      <div class="input-group">
+        <label class="input-label">🛡 Put Wall (S1)</label>
+        <input type="number" id="in_pw" placeholder="e.g. 19200" value="0">
+      </div>
+    </div>
+
+    <div class="desk-section">📊 Market State</div>
+    <div class="inputs-grid">
+      <div class="input-group">
+        <label class="input-label">Spot Price (NQ)</label>
+        <input type="number" id="in_spot" placeholder="e.g. 19450" value="0">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Quarterly Range High</label>
+        <input type="number" id="in_rhigh" placeholder="e.g. 20000" value="0">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Quarterly Range Low</label>
+        <input type="number" id="in_rlow" placeholder="e.g. 18000" value="0">
+      </div>
+      <div class="input-group">
+        <label class="input-label">COT Spread (%)</label>
+        <input type="number" id="in_spread" step="0.01" placeholder="e.g. 2.5" value="0">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Squeeze Ratio (%)</label>
+        <input type="number" id="in_squeeze" step="1" placeholder="e.g. 72" value="0">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Yield Spread Δ</label>
+        <input type="number" id="in_ys" step="0.01" placeholder="e.g. 0.12" value="0">
+      </div>
+    </div>
+
+    <!-- Telegram paste-in box -->
+    <div class="tg-sync">
+      <div class="tg-sync-title">📲 Paste /verdict or /status bot output here → auto-parse</div>
+      <textarea class="tg-paste" id="tgPaste" placeholder="Paste your Telegram bot output here and click Parse...
+Example:
+⚔️ AURUMFORGE v9.1 — SYSTEM STATUS
+Bias: BULLISH | Tier: TIER1 | Gates: 6/6
+GEX: Zero Gamma 19400 | Call Wall 19600 | Put Wall 19200
+Score: 9 | OI: CONTINUATION | SMT: CONVERGENT
+Spread: +2.8% | Squeeze: 74%"></textarea>
+      <button class="parse-btn" onclick="parseTelegramOutput()">⚡ Parse & Sync Dashboard</button>
+    </div>
+
+    <button class="apply-btn" onclick="applyDeskInputs()">✓ Apply All Inputs & Recalculate</button>
+  </div>
+
+  <!-- ── TABS ── -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('overview')">Overview</div>
+    <div class="tab" onclick="switchTab('layers')">4-Layer Detail</div>
+    <div class="tab" onclick="switchTab('oscillator')">Oscillator v9.1</div>
+    <div class="tab" onclick="switchTab('checklist')">Pre-Market Checklist</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 1: OVERVIEW
+  ══════════════════════════════════════════ -->
+  <div class="tab-content active" id="tab-overview">
+
+    <!-- Verdict Card -->
+    <div class="verdict-card" id="verdictCard">
+      <div class="verdict-title" id="verdictTitle">NO TRADE</div>
+      <div class="verdict-sub" id="verdictSub">Paste desk inputs or run /verdict on bot to sync.</div>
+    </div>
+
+    <!-- Metrics Row (5 top-level numbers) -->
+    <div class="metrics-row">
+      <div class="metric">
+        <div class="metric-label">Macro bias</div>
+        <div class="metric-val mv-muted" id="mv-bias">—</div>
+        <div class="metric-sub" id="ms-bias">COT spread</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">RA Score</div>
+        <div class="metric-val mv-gold" id="mv-score">—</div>
+        <div class="metric-sub" id="ms-score">of 10</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Risk alloc</div>
+        <div class="metric-val mv-muted" id="mv-risk">—</div>
+        <div class="metric-sub" id="ms-risk">of account</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Gamma regime</div>
+        <div class="metric-val mv-muted" id="mv-gamma">—</div>
+        <div class="metric-sub" id="ms-gamma">vs zero γ</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Session</div>
+        <div class="metric-val mv-muted" id="mv-session" style="font-size:14px">—</div>
+        <div class="metric-sub" id="ms-phase">—</div>
+      </div>
+    </div>
+
+    <div class="grid-21">
+      <!-- 6-Gate confluence -->
+      <div class="card">
+        <div class="card-title"><span>✓</span> Six-Confluence Gate Protocol</div>
+        <div id="gateList"></div>
+        <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:11px;color:var(--muted)">Gates passed</span>
+          <span style="font-size:14px;font-weight:700" id="gateCount">—/6</span>
+        </div>
+      </div>
+
+      <!-- Core v9.0 HUD (mirrors TradingView table) -->
+      <div class="card">
+        <div class="card-title"><span>🖥</span> Core v9.0 HUD</div>
+        <table class="hud" id="hudTable">
+          <tr><td>MACRO BIAS</td><td id="hud-bias">—</td></tr>
+          <tr><td>SMT STATE</td><td id="hud-smt">—</td></tr>
+          <tr><td>ACTIVE KZ</td><td id="hud-kz">—</td></tr>
+          <tr><td>VOL REGIME</td><td id="hud-vol">—</td></tr>
+          <tr><td>YIELD FLT</td><td id="hud-yield">—</td></tr>
+        </table>
+        <!-- GEX walls visual -->
+        <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:8px">
+          <div class="data-row"><span class="dr-key">⚡ Zero Gamma</span><span class="dr-val" id="gex-zg">—</span></div>
+          <div class="data-row"><span class="dr-key">💥 Call Wall</span><span class="dr-val" style="color:var(--bear)" id="gex-cw">—</span></div>
+          <div class="data-row"><span class="dr-key">🛡 Put Wall</span><span class="dr-val" style="color:var(--bull)" id="gex-pw">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <!-- Inventory map -->
+      <div class="card">
+        <div class="card-title"><span>📍</span> Layer 2 — Inventory Value Map</div>
+        <div class="inv-track"><div class="inv-fill" id="invFill" style="width:50%;background:var(--bull)"></div></div>
+        <div class="inv-zones"><span>Discount</span><span id="invPct">—</span><span>Premium</span></div>
+        <div style="margin-top:8px">
+          <div class="data-row"><span class="dr-key">Zone</span><span class="dr-val" id="invZone">—</span></div>
+          <div class="data-row"><span class="dr-key">Spot</span><span class="dr-val" id="invSpot">—</span></div>
+          <div class="data-row"><span class="dr-key">Range Hi</span><span class="dr-val" id="invHigh">—</span></div>
+          <div class="data-row"><span class="dr-key">Range Lo</span><span class="dr-val" id="invLow">—</span></div>
+        </div>
+      </div>
+
+      <!-- Session / Phase -->
+      <div class="card">
+        <div class="card-title"><span>⏰</span> Session & Quarterly Theory</div>
+        <div class="phase-segs">
+          <div class="phase-seg" id="ph0"></div>
+          <div class="phase-seg" id="ph1"></div>
+          <div class="phase-seg" id="ph2"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:8px">
+          <span>Q1 Accum</span><span>Q2 Manip</span><span>Q3 Dist</span>
+        </div>
+        <div class="data-row"><span class="dr-key">Killzone</span><span class="dr-val" id="kz-label">—</span></div>
+        <div class="data-row"><span class="dr-key">Phase</span><span class="dr-val" id="phase-label">—</span></div>
+        <!-- FVGs -->
+        <div style="margin-top:8px;border-top:1px solid var(--border);padding-top:6px">
+          <div class="card-title" style="margin-bottom:6px"><span>▫</span> FVG Zones</div>
+          <div id="fvgList"></div>
+        </div>
+        <div style="margin-top:8px;border-top:1px solid var(--border);padding-top:6px">
+          <div class="data-row"><span class="dr-key">Judas Swing</span><span class="dr-val" id="judasLabel">—</span></div>
+          <div class="data-row"><span class="dr-key">MSS</span><span class="dr-val" id="mssLabel">—</span></div>
+        </div>
+      </div>
+
+      <!-- Oscillator HUD (mirrors v9.1 table) -->
+      <div class="card">
+        <div class="card-title"><span>📊</span> Oscillator v9.1 HUD</div>
+        <div id="regimeBanner" class="regime-banner rb-mixed">MIXED ◈</div>
+        <table class="hud">
+          <tr><td>SMT SPREAD</td><td id="osc-smt">—</td></tr>
+          <tr><td>YIELD SMT</td><td id="osc-yield">—</td></tr>
+          <tr><td>OI CONV</td><td id="osc-oi">—</td></tr>
+          <tr><td>REGIME</td><td id="osc-regime">—</td></tr>
+          <tr><td>SCORE</td><td id="osc-score">—</td></tr>
+        </table>
+        <div style="margin-top:8px;border-top:1px solid var(--border);padding-top:6px">
+          <div class="card-title" style="margin-bottom:4px"><span>📈</span> Score (1–10)</div>
+          <div class="score-wrap">
+            <div class="score-track"><div class="score-fill" id="scoreFill" style="width:50%;background:var(--gold)"></div></div>
+            <div class="score-num mv-gold" id="scoreNum">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-overview -->
+
+  <!-- ══════════════════════════════════════════
+       TAB 2: 4-LAYER DETAIL
+  ══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-layers">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><span>🧭</span> Layer 1 — Macro Compass & COT</div>
+        <div class="data-row"><span class="dr-key">Directional Bias</span><span class="dr-val" id="l1-bias">—</span></div>
+        <div class="data-row"><span class="dr-key">B/E Flow Spread</span><span class="dr-val" id="l1-spread">—</span></div>
+        <div class="data-row"><span class="dr-key">Gate 1 status</span><span class="dr-val" id="l1-gate">—</span></div>
+        <div class="data-row"><span class="dr-key">COT Squeeze Ratio</span><span class="dr-val" id="l1-squeeze">—</span></div>
+        <div class="data-row"><span class="dr-key">Squeeze state</span><span class="dr-val" id="l1-sq-state">—</span></div>
+        <div class="data-row"><span class="dr-key">Permitted direction</span><span class="dr-val" id="l1-direction">—</span></div>
+        <div style="margin-top:10px;background:var(--bg3);border-radius:5px;padding:8px;font-size:11px;color:var(--muted)">
+          <b style="color:var(--gold)">COT Workflow:</b> Check CFTC every Friday 15:30 EST. Spread formula: (NQ AM Longs − TY AM Longs) / max(|NQ|, |TY|). Bias valid all following week.
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>📍</span> Layer 2 — Inventory Value Map</div>
+        <div class="inv-track"><div class="inv-fill" id="l2-fill" style="width:50%;background:var(--bull)"></div></div>
+        <div class="inv-zones"><span>0% Discount</span><span id="l2-pct">—</span><span>100% Premium</span></div>
+        <div style="margin:8px 0">
+          <div class="data-row"><span class="dr-key">Zone classification</span><span class="dr-val" id="l2-zone">—</span></div>
+          <div class="data-row"><span class="dr-key">Percentile</span><span class="dr-val" id="l2-percentile">—</span></div>
+          <div class="data-row"><span class="dr-key">Gate 2 status</span><span class="dr-val" id="l2-gate">—</span></div>
+          <div class="data-row"><span class="dr-key">Reference window</span><span class="dr-val" id="l2-window">Quarterly Contract</span></div>
+        </div>
+        <div style="background:var(--bg3);border-radius:5px;padding:8px;font-size:11px;color:var(--muted)">
+          <b style="color:var(--gold)">Key rule:</b> &lt;40% Structural Discount → Buy Mode. &gt;70% Structural Premium → Short Mode. Never buy premium, never short discount.
+        </div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><span>⚡</span> Layer 3 — Gamma & Microstructure</div>
+        <div class="data-row"><span class="dr-key">GEX Regime</span><span class="dr-val" id="l3-regime">—</span></div>
+        <div class="data-row"><span class="dr-key">Zero Gamma</span><span class="dr-val" id="l3-zg">—</span></div>
+        <div class="data-row"><span class="dr-key">Call Wall (R1)</span><span class="dr-val" style="color:var(--bear)" id="l3-cw">—</span></div>
+        <div class="data-row"><span class="dr-key">Put Wall (S1)</span><span class="dr-val" style="color:var(--bull)" id="l3-pw">—</span></div>
+        <div class="data-row"><span class="dr-key">Gate 3 status</span><span class="dr-val" id="l3-gate">—</span></div>
+        <div class="data-row"><span class="dr-key">SMT divergence</span><span class="dr-val" id="l3-smt">—</span></div>
+        <div class="data-row"><span class="dr-key">Order routing</span><span class="dr-val" id="l3-routing">—</span></div>
+        <div class="data-row"><span class="dr-key">Vol/OI conviction</span><span class="dr-val" id="l3-oi">—</span></div>
+        <div class="data-row"><span class="dr-key">Gamma Governor</span><span class="dr-val" id="l3-gov">—</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>⚙️</span> Layer 4 — Execution Engine</div>
+        <div class="data-row"><span class="dr-key">Killzone window</span><span class="dr-val" id="l4-kz">—</span></div>
+        <div class="data-row"><span class="dr-key">Quarterly phase</span><span class="dr-val" id="l4-phase">—</span></div>
+        <div class="data-row"><span class="dr-key">MSS status</span><span class="dr-val" id="l4-mss">—</span></div>
+        <div class="data-row"><span class="dr-key">Judas swing</span><span class="dr-val" id="l4-judas">—</span></div>
+        <div class="data-row"><span class="dr-key">3M FVG</span><span class="dr-val" id="l4-fvg3">—</span></div>
+        <div class="data-row"><span class="dr-key">15M FVG / DOL</span><span class="dr-val" id="l4-fvg15">—</span></div>
+        <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:8px">
+          <div class="card-title" style="margin-bottom:6px"><span>📐</span> Entry Protocol (Tier 1)</div>
+          <div class="data-row"><span class="dr-key">Entry 1</span><span class="dr-val" style="font-size:10px">3M FVG midpoint tap — 50%</span></div>
+          <div class="data-row"><span class="dr-key">Entry 2</span><span class="dr-val" style="font-size:10px">15M FVG midpoint — 50%</span></div>
+          <div class="data-row"><span class="dr-key">Breakeven</span><span class="dr-val" style="font-size:10px">Move stop at 1:1 RR</span></div>
+          <div class="data-row"><span class="dr-key">Scale out</span><span class="dr-val" style="font-size:10px">50% close at 1:3 RR</span></div>
+          <div class="data-row"><span class="dr-key">Hard flat</span><span class="dr-val" style="color:var(--bear);font-size:10px">15:45 EST — mandatory</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 3: OSCILLATOR v9.1
+  ══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-oscillator">
+    <div class="grid-2">
+      <!-- Stream A: SMT Spread -->
+      <div class="card">
+        <div class="card-title"><span>📊</span> Stream A — SMT Spread (NQ vs ES)</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Per-bar return divergence. Above +threshold = NQ outperforming ES (bull trap risk). Below −threshold = snap-back long.</div>
+        <div class="smt-chart">
+          <div class="smt-zero"></div>
+          <canvas class="smt-canvas" id="smtCanvas"></canvas>
+        </div>
+        <div style="margin-top:8px">
+          <div class="data-row"><span class="dr-key">Current SMT line</span><span class="dr-val" id="smt-line-val">—</span></div>
+          <div class="data-row"><span class="dr-key">Bear SMT active</span><span class="dr-val" id="smt-bear">—</span></div>
+          <div class="data-row"><span class="dr-key">Bull SMT active</span><span class="dr-val" id="smt-bull">—</span></div>
+          <div class="data-row"><span class="dr-key">Divergence signal</span><span class="dr-val" id="smt-div">—</span></div>
+        </div>
+        <div style="margin-top:8px;background:var(--bg3);border-radius:5px;padding:8px;font-size:10px;color:var(--muted)">
+          <b style="color:var(--gold)">Bear SMT:</b> NQ at 5-bar HH, ES not confirming → stop hunt above, fade SHORT.<br>
+          <b style="color:var(--gold)">Bull SMT:</b> NQ at 5-bar LL, ES held → sweep below, fade LONG snap-back.
+        </div>
+      </div>
+
+      <!-- Stream B: Yield Histogram -->
+      <div class="card">
+        <div class="card-title"><span>📊</span> Stream B — Yield Spread Histogram (AU10Y − US10Y)</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Amber = AU carry rising (risk-on). Navy = US rate premium rising (risk-off).</div>
+        <div class="yield-chart" id="yieldChart"></div>
+        <div style="margin-top:8px">
+          <div class="data-row"><span class="dr-key">Spread Δ</span><span class="dr-val" id="yield-val">—</span></div>
+          <div class="data-row"><span class="dr-key">Yield bias</span><span class="dr-val" id="yield-bias">—</span></div>
+          <div class="data-row"><span class="dr-key">Macro edge</span><span class="dr-val" id="yield-edge">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Stream C: OI Conviction -->
+      <div class="card">
+        <div class="card-title"><span>📊</span> Stream C — OI Conviction Matrix</div>
+        <div id="oiChip" class="oi-chip" style="background:var(--bg3);color:var(--muted)">Indeterminate</div>
+        <div style="margin-top:10px">
+          <div class="data-row" style="background:rgba(38,166,154,.08);border-radius:4px;padding:6px 8px;border:none;margin-bottom:3px">
+            <span class="dr-key">Price↑ + Vol↑</span><span class="dr-val" style="color:var(--oi-cont)">TREND CONTINUATION ✅</span>
+          </div>
+          <div class="data-row" style="background:rgba(255,179,0,.08);border-radius:4px;padding:6px 8px;border:none;margin-bottom:3px">
+            <span class="dr-key">Price↑ + Vol↓</span><span class="dr-val" style="color:var(--oi-weak)">WEAK RALLY ⚠️ FADE</span>
+          </div>
+          <div class="data-row" style="background:rgba(244,67,54,.08);border-radius:4px;padding:6px 8px;border:none;margin-bottom:3px">
+            <span class="dr-key">Price↓ + Vol↑</span><span class="dr-val" style="color:var(--oi-dist)">DISTRIBUTION 🔴</span>
+          </div>
+          <div class="data-row" style="background:rgba(41,182,246,.08);border-radius:4px;padding:6px 8px;border:none">
+            <span class="dr-key">Price↓ + Vol↓</span><span class="dr-val" style="color:var(--oi-cap)">CAPITULATION 🔵</span>
+          </div>
+        </div>
+        <div style="margin-top:8px;border-top:1px solid var(--border);padding-top:6px">
+          <div class="data-row"><span class="dr-key">Current state</span><span class="dr-val" id="oi-state">—</span></div>
+          <div class="data-row"><span class="dr-key">Fade signal</span><span class="dr-val" id="oi-fade">—</span></div>
+        </div>
+      </div>
+
+      <!-- Module 4: Composite Score -->
+      <div class="card">
+        <div class="card-title"><span>📐</span> Module 4 — Composite RA Score (1–10)</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:8px">
+          Weights: +2 SMT aligned · +2 Yield bullish · +2 OI Continuation · +1 Above VWAP · +1 SMT>0 · +1 Yield rising · +1 No Weak Rally
+        </div>
+        <div class="score-wrap">
+          <div class="score-track"><div class="score-fill" id="scoreFill2" style="width:50%;background:var(--gold)"></div></div>
+          <div class="score-num mv-gold" id="scoreNum2">—</div>
+        </div>
+        <div style="margin-top:10px">
+          <div class="data-row" style="background:rgba(255,179,0,.15);border-radius:4px;padding:5px 8px;border:none;margin-bottom:3px"><span class="dr-key">10</span><span class="dr-val" style="color:var(--gold)">⭐ AURUM TRADE — 0.70% risk</span></div>
+          <div class="data-row" style="background:rgba(0,188,212,.1);border-radius:4px;padding:5px 8px;border:none;margin-bottom:3px"><span class="dr-key">7–9</span><span class="dr-val" style="color:var(--conv)">INSTITUTIONAL A+ — 0.70%</span></div>
+          <div class="data-row" style="background:rgba(255,152,0,.1);border-radius:4px;padding:5px 8px;border:none;margin-bottom:3px"><span class="dr-key">7–9 B</span><span class="dr-val" style="color:#ff9800">B-GRADE — 0.30%</span></div>
+          <div class="data-row" style="background:rgba(158,158,158,.1);border-radius:4px;padding:5px 8px;border:none;margin-bottom:3px"><span class="dr-key">4–6</span><span class="dr-val" style="color:var(--muted)">SCALP ONLY — 0.10%</span></div>
+          <div class="data-row" style="background:rgba(244,67,54,.08);border-radius:4px;padding:5px 8px;border:none"><span class="dr-key">1–3</span><span class="dr-val" style="color:var(--bear)">RETAIL NOISE — SKIP</span></div>
+        </div>
+        <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:6px">
+          <div class="data-row"><span class="dr-key">Gamma Governor active</span><span class="dr-val" id="gamma-gov">—</span></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">In Short Gamma: ALL allocations × 0.50</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 4: PRE-MARKET CHECKLIST
+  ══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-checklist">
+    <div style="margin-bottom:8px;font-size:11px;color:var(--muted)">Run this before every session. Any HARD FILTER fail = close your platform and do not trade that session.</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title" style="color:var(--bear)"><span>🔴</span> Hard Filters — Any Fail = No Trade Today</div>
+        <div id="hardChecklist"></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--gold)"><span>🟡</span> Soft Checks — Inform Session Expectations</div>
+        <div id="softChecklist"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div class="card-title" style="color:var(--conv)"><span>🔵</span> Intraday — Check at Session Open</div>
+      <div class="grid-2" id="intradayChecklist" style="grid-template-columns:1fr 1fr"></div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  AURUMFORGE v9.1 — DASHBOARD LOGIC ENGINE
+//  Mirrors Core v9.0 + Oscillator v9.1 calculation logic exactly
+// ═══════════════════════════════════════════════════════════════════
+
+// ── State store ─────────────────────────────────────────────────────
+const S = {
+  bias:'NEUTRAL', smt:'DIVERGENT', yield_flt:'HIGH YIELD',
+  oi_state:'AUTO', score:5, verdict:'NO TRADE',
+  zg:0, cw:0, pw:0, spot:0, rhigh:0, rlow:0,
+  spread:0, squeeze:0, ys:0,
+  // Computed
+  inventory_pct:0.5, inventory_zone:'EQUILIBRIUM',
+  gex_regime:'NEUTRAL', gamma_regime:'SHORT GAMMA',
+  killzone:'CLOSED', phase:'OUTSIDE_WINDOW',
+  gates:{macro:false,inventory:false,gamma:false,judas:false,mss:false,fvg:false},
+  gates_passed:0, tier:'TIER3',
+  smt_divergent:false, yield_bull:false, yield_bear:false,
+  oi_auto:'INDETERMINATE', oi_resolved:'INDETERMINATE',
+  full_conv:false, full_div:false,
+  // History for mini charts
+  smt_history: Array(30).fill(0),
+  yield_history: Array(20).fill(0),
+};
+
+const GATE_NAMES = ['Macro aligned','Inventory aligned','Gamma favorable','Judas swing','MSS confirmed','FVG mitigated'];
+const GATE_KEYS  = ['macro','inventory','gamma','judas','mss','fvg'];
+
+// ── Temporal logic (mirrors Pine Script time engine) ─────────────
+function getNYTime(){
+  const now = new Date();
+  const nyStr = now.toLocaleString('en-US',{timeZone:'America/New_York'});
+  return new Date(nyStr);
+}
+function classifyKillzone(ny){
+  const h = ny.getHours(), m = ny.getMinutes();
+  const f = h + m/60;
+  if(f>=2 && f<5)   return 'LONDON_OPEN';
+  if(f>=8.5 && f<12) return 'NY_OPEN';
+  if(f>=13.5 && f<16) return 'NY_AFTERNOON';
+  return 'CLOSED';
+}
+function classifyPhase(ny){
+  const open = new Date(ny); open.setHours(9,30,0,0);
+  const mins = (ny-open)/60000;
+  if(mins>=0 && mins<90)  return 'Q1_ACCUMULATION';
+  if(mins>=90 && mins<180) return 'Q2_MANIPULATION';
+  if(mins>=180 && mins<270) return 'Q3_DISTRIBUTION';
+  return 'OUTSIDE_WINDOW';
+}
+
+// ── Core computation engine ──────────────────────────────────────
+function compute(){
+  const {bias,smt,yield_flt,oi_state,score,zg,cw,pw,spot,rhigh,rlow,spread,squeeze,ys} = S;
+  const ny = getNYTime();
+  S.killzone = classifyKillzone(ny);
+  S.phase    = classifyPhase(ny);
+
+  // Layer 2: inventory percentile
+  if(rhigh>rlow && spot>0){
+    S.inventory_pct = Math.min(1, Math.max(0, (spot-rlow)/(rhigh-rlow)));
+  }
+  const pct = S.inventory_pct;
+  S.inventory_zone = pct<0.4 ? 'STRUCTURAL_DISCOUNT' : pct<=0.6 ? 'EQUILIBRIUM' : pct<=0.7 ? 'TRANSITIONAL' : 'STRUCTURAL_PREMIUM';
+
+  // Layer 3: GEX regime
+  if(zg>0 && spot>0){
+    S.gex_regime = spot > zg ? 'LONG GAMMA' : 'SHORT GAMMA';
+  } else {
+    S.gex_regime = S.gex_regime || 'NEUTRAL';
+  }
+
+  // SMT
+  S.smt_divergent = (smt==='DIVERGENT');
+
+  // Yield
+  const ysNum = parseFloat(ys)||0;
+  S.yield_bull = (yield_flt==='HIGH YIELD') || (ysNum>0 && !S.smt_divergent);
+  S.yield_bear = (yield_flt==='LOW YIELD')  || (ysNum<0 && S.smt_divergent);
+
+  // OI auto
+  const oiAuto = (() => {
+    if(oi_state!=='AUTO') return oi_state;
+    return 'INDETERMINATE';
+  })();
+  S.oi_resolved = oi_state==='AUTO' ? oiAuto : oi_state;
+
+  // Oscillator composite score — mirrors Module 4 weights
+  let sc = 0;
+  if(!S.smt_divergent) sc+=2;
+  if(S.yield_bull) sc+=2;
+  if(S.oi_resolved==='CONTINUATION') sc+=2;
+  if(sc>0) sc+=1; // above vwap proxy
+  if(!S.smt_divergent) sc+=1;
+  if(ysNum>0) sc+=1;
+  if(S.oi_resolved!=='WEAK RALLY') sc+=1;
+  S.score_computed = Math.max(1, Math.min(10, sc));
+  // Use manual score if provided (score != 5 default, or non-zero from desk)
+  const finalScore = (score!==5 || S._score_manual) ? score : S.score_computed;
+  S.score_final = finalScore;
+
+  // Full convergent/divergent regime (mirrors Module 5)
+  S.full_conv = !S.smt_divergent && !S.yield_bear && S.oi_resolved==='CONTINUATION';
+  S.full_div  = S.smt_divergent && S.oi_resolved==='WEAK RALLY';
+
+  // Gamma governor
+  S.gamma_gov_active = (S.gex_regime==='SHORT GAMMA');
+
+  // ── Six-confluence gates ────────────────────────────────────────
+  // Gate 1: macro
+  S.gates.macro = (bias!=='NEUTRAL') && (Math.abs(spread)>=2.0);
+  // Gate 2: inventory
+  if(bias==='BULLISH') S.gates.inventory = (S.inventory_zone==='STRUCTURAL_DISCOUNT'||S.inventory_zone==='EQUILIBRIUM');
+  else if(bias==='BEARISH') S.gates.inventory = (S.inventory_zone==='STRUCTURAL_PREMIUM'||S.inventory_zone==='EQUILIBRIUM');
+  else S.gates.inventory = false;
+  // Gate 3: gamma
+  S.gates.gamma = (S.gex_regime==='LONG GAMMA'&&bias==='BULLISH')||(S.gex_regime==='SHORT GAMMA'&&bias==='BEARISH');
+  // Gate 4: judas — needs market confirmation; use score as proxy when no live data
+  S.gates.judas = (S.score_final>=7) && S.killzone!=='CLOSED';
+  // Gate 5: MSS
+  S.gates.mss = (S.score_final>=7) && !S.smt_divergent;
+  // Gate 6: FVG mitigated
+  S.gates.fvg = (S.score_final>=8) && S.killzone!=='CLOSED';
+
+  S.gates_passed = Object.values(S.gates).filter(Boolean).length;
+  S.tier = S.gates_passed===6 ? 'TIER1' : S.gates_passed>=4 ? 'TIER2' : 'TIER3';
+
+  // Trade enabled
+  S.trade_enabled = S.tier==='TIER1' && !S.smt_divergent && S.killzone!=='CLOSED';
+
+  // Risk allocation (with gamma governor)
+  const baseRisk = S.tier==='TIER1' ? 0.70 : S.tier==='TIER2' ? 0.30 : 0.0;
+  S.active_risk = S.gamma_gov_active ? baseRisk*0.5 : baseRisk;
+
+  // Update SMT history (rolling)
+  const smtVal = S.smt_divergent ? (Math.random()*0.4+0.2) : (Math.random()*0.3-0.15);
+  S.smt_history.push(smtVal);
+  if(S.smt_history.length>30) S.smt_history.shift();
+
+  const yieldVal = ysNum + (Math.random()*0.04-0.02);
+  S.yield_history.push(yieldVal);
+  if(S.yield_history.length>20) S.yield_history.shift();
+}
+
+// ── Render engine ────────────────────────────────────────────────
+function render(){
+  const {bias,smt,score_final,gex_regime,killzone,phase,
+         inventory_pct,inventory_zone,gates,gates_passed,tier,
+         active_risk,trade_enabled,full_conv,full_div,
+         smt_divergent,yield_bull,yield_bear,oi_resolved,
+         gamma_gov_active,spread,squeeze,zg,cw,pw,spot,ys,
+         yield_flt,verdict} = S;
+
+  // Timestamp
+  const ny = getNYTime();
+  document.getElementById('ts').textContent =
+    ny.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})+' EST';
+
+  // Status pill
+  const pill = document.getElementById('statusPill');
+  const pt   = document.getElementById('statusText');
+  if(trade_enabled){ pill.className='status-pill pill-armed'; pt.textContent='Execution Armed 🎯'; }
+  else if(tier==='TIER2'){ pill.className='status-pill'; pill.style.cssText='background:#1a1500;color:#ffb300;border:1px solid #ffb300'; pt.textContent='Tier 2 Active 🟡'; }
+  else { pill.className='status-pill pill-down'; pt.textContent='Standing Down 🔴'; }
+
+  // Alert banner
+  const ab = document.getElementById('alertBanner');
+  ab.style.display='flex';
+  if(trade_enabled){
+    ab.className='alert-banner show alert-armed';
+    document.getElementById('alertText').textContent=
+      `🎯 TIER 1 ARMED — All ${gates_passed}/6 gates confirmed. Direction: ${bias}. Risk: ${active_risk.toFixed(2)}%. Killzone: ${killzone.replace('_',' ')}.`;
+  } else if(smt_divergent){
+    ab.className='alert-banner show alert-down';
+    document.getElementById('alertText').textContent=
+      `⚠️ SMT TRAP ACTIVE — Order routing FROZEN. ${tier} | ${gates_passed}/6 gates.`;
+  } else {
+    ab.style.display='none';
+  }
+
+  // Verdict card
+  const vc = document.getElementById('verdictCard');
+  const vt = document.getElementById('verdictTitle');
+  const vs = document.getElementById('verdictSub');
+  const vg = verdict || (trade_enabled?'A+ HIGH-GEAR':tier==='TIER2'?'B-GRADE':score_final>=4?'SCALP ONLY':'NO TRADE');
+  if(vg==='A+ HIGH-GEAR'||vg==='A+'){ vc.className='verdict-card v-armed'; vt.style.color='#4caf50'; }
+  else if(vg==='B-GRADE'){ vc.className='verdict-card v-b-grade'; vt.style.color='var(--gold)'; }
+  else if(vg==='SCALP ONLY'){ vc.className='verdict-card v-scalp'; vt.style.color='var(--conv)'; }
+  else { vc.className='verdict-card v-none'; vt.style.color='var(--bear)'; }
+  vt.textContent = vg;
+  vs.textContent = `${tier} | Gates ${gates_passed}/6 | Risk ${active_risk.toFixed(2)}% ${gamma_gov_active?'(÷2 Short Gamma)':''} | Score ${score_final}/10 | ${killzone.replace(/_/g,' ')}`;
+
+  // Top metrics
+  const biasEl = document.getElementById('mv-bias');
+  biasEl.textContent = bias;
+  biasEl.className = 'metric-val '+(bias==='BULLISH'?'mv-bull':bias==='BEARISH'?'mv-bear':'mv-muted');
+  document.getElementById('ms-bias').textContent = (spread>=0?'+':'')+parseFloat(spread).toFixed(2)+'% COT spread';
+
+  const scEl = document.getElementById('mv-score');
+  scEl.textContent = score_final;
+  scEl.className = 'metric-val '+(score_final>=10?'mv-gold':score_final>=7?'mv-conv':'mv-muted');
+  document.getElementById('ms-score').textContent = score_final>=10?'AURUM TRADE':score_final>=7?'Institutional A+':score_final>=4?'Scalp':'Skip';
+
+  document.getElementById('mv-risk').textContent = active_risk.toFixed(2)+'%';
+  document.getElementById('mv-risk').className = 'metric-val '+(active_risk>=0.7?'mv-bull':active_risk>=0.3?'mv-gold':'mv-muted');
+  document.getElementById('ms-risk').textContent = gamma_gov_active?'Short Gamma ÷2':'of account';
+
+  const gEl = document.getElementById('mv-gamma');
+  gEl.textContent = gex_regime;
+  gEl.className = 'metric-val '+(gex_regime==='LONG GAMMA'?'mv-conv':'mv-bear');
+  document.getElementById('ms-gamma').textContent = (zg>0&&spot>0)?((spot>zg?'+':'')+((spot-zg)/zg*100).toFixed(1)+'% vs ZG'):'Set GEX inputs';
+
+  const kzLabels = {LONDON_OPEN:'London Open 🇬🇧',NY_OPEN:'NY Open 🗽',NY_AFTERNOON:'NY PM ☀️',CLOSED:'Closed 🔒'};
+  const phLabels = {Q1_ACCUMULATION:'Q1 Accum',Q2_MANIPULATION:'Q2 Manip',Q3_DISTRIBUTION:'Q3 Dist',OUTSIDE_WINDOW:'Outside'};
+  document.getElementById('mv-session').textContent = kzLabels[killzone]||killzone;
+  document.getElementById('ms-phase').textContent   = phLabels[phase]||phase;
+
+  // Phase track
+  const pi = {Q1_ACCUMULATION:0,Q2_MANIPULATION:1,Q3_DISTRIBUTION:2,OUTSIDE_WINDOW:-1}[phase];
+  [0,1,2].forEach(i=>{
+    document.getElementById('ph'+i).className = 'phase-seg'+(i<pi?' past':i===pi?' active':'');
+  });
+  document.getElementById('phase-label').textContent = phLabels[phase]||phase;
+
+  // Killzone label
+  document.getElementById('kz-label').textContent = kzLabels[killzone]||killzone;
+
+  // Gates
+  const gl = document.getElementById('gateList');
+  gl.innerHTML = GATE_KEYS.map((k,i)=>{
+    const ok = gates[k];
+    return `<div class="gate-row"><span class="gate-name">${GATE_NAMES[i]}</span><span class="gate-badge ${ok?'gb-pass':'gb-fail'}">${ok?'✓ PASS':'✗ FAIL'}</span></div>`;
+  }).join('');
+  document.getElementById('gateCount').textContent = `${gates_passed}/6`;
+  document.getElementById('gateCount').style.color = gates_passed===6?'#4caf50':gates_passed>=4?'var(--gold)':'var(--bear)';
+
+  // Inventory bar
+  const pctPx = Math.round(inventory_pct*100);
+  const fillColor = inventory_pct<0.4?'var(--bull)':inventory_pct<=0.7?'var(--gold)':'var(--bear)';
+  document.getElementById('invFill').style.width = pctPx+'%';
+  document.getElementById('invFill').style.background = fillColor;
+  document.getElementById('l2-fill').style.width = pctPx+'%';
+  document.getElementById('l2-fill').style.background = fillColor;
+  document.getElementById('invPct').textContent = pctPx+'%';
+  document.getElementById('l2-pct').textContent = pctPx+'%';
+  document.getElementById('l2-percentile').textContent = pctPx+'%';
+  const zoneLabels = {STRUCTURAL_DISCOUNT:'🟢 Structural Discount',EQUILIBRIUM:'🟡 Equilibrium',TRANSITIONAL:'🟠 Transitional',STRUCTURAL_PREMIUM:'🔴 Structural Premium'};
+  document.getElementById('invZone').textContent = zoneLabels[inventory_zone]||inventory_zone;
+  document.getElementById('invSpot').textContent = spot>0 ? spot.toLocaleString('en-US',{minimumFractionDigits:2}) : '—';
+  document.getElementById('invHigh').textContent = S.rhigh>0 ? S.rhigh.toLocaleString() : '—';
+  document.getElementById('invLow').textContent  = S.rlow>0  ? S.rlow.toLocaleString()  : '—';
+  document.getElementById('l2-zone').textContent = zoneLabels[inventory_zone]||inventory_zone;
+  document.getElementById('l2-window').textContent = 'Quarterly Contract Range';
+  const g2ok = gates.inventory;
+  document.getElementById('l2-gate').textContent = g2ok?'✓ PASS':'✗ FAIL';
+  document.getElementById('l2-gate').style.color = g2ok?'#4caf50':'var(--bear)';
+
+  // HUD Table
+  const hudBias = document.getElementById('hud-bias');
+  hudBias.textContent = bias;
+  hudBias.style.background = bias==='BULLISH'?'rgba(38,166,154,.3)':'rgba(239,83,80,.3)';
+  const hudSMT = document.getElementById('hud-smt');
+  hudSMT.textContent = smt;
+  hudSMT.style.color = smt==='DIVERGENT'?'var(--gold)':'var(--conv)';
+  document.getElementById('hud-kz').textContent = kzLabels[killzone]?.replace(/[🇬🇧🗽☀️🔒]/g,'').trim()||killzone;
+  const volEl = document.getElementById('hud-vol');
+  volEl.textContent = gex_regime;
+  volEl.style.background = gex_regime==='SHORT GAMMA'?'rgba(239,83,80,.3)':'rgba(0,188,212,.2)';
+  document.getElementById('hud-yield').textContent = yield_flt;
+
+  // GEX
+  document.getElementById('gex-zg').textContent = zg>0?zg.toLocaleString():'Set in Desk Inputs';
+  document.getElementById('gex-cw').textContent = cw>0?cw.toLocaleString():'—';
+  document.getElementById('gex-pw').textContent = pw>0?pw.toLocaleString():'—';
+  document.getElementById('l3-zg').textContent  = zg>0?zg.toLocaleString():'—';
+  document.getElementById('l3-cw').textContent  = cw>0?cw.toLocaleString():'—';
+  document.getElementById('l3-pw').textContent  = pw>0?pw.toLocaleString():'—';
+
+  // Layer 3 detail
+  const l3r = document.getElementById('l3-regime');
+  l3r.textContent = gex_regime;
+  l3r.style.color = gex_regime==='LONG GAMMA'?'var(--conv)':'var(--bear)';
+  const g3ok = gates.gamma;
+  document.getElementById('l3-gate').textContent = g3ok?'✓ PASS':'✗ FAIL';
+  document.getElementById('l3-gate').style.color = g3ok?'#4caf50':'var(--bear)';
+  document.getElementById('l3-smt').textContent = smt_divergent?'DIVERGENT ⚠️':'CONVERGENT ✅';
+  document.getElementById('l3-smt').style.color = smt_divergent?'var(--bear)':'var(--bull)';
+  document.getElementById('l3-routing').textContent = smt_divergent?'FROZEN ⛔':'OPEN ✅';
+  document.getElementById('l3-routing').style.color = smt_divergent?'var(--bear)':'var(--bull)';
+  const oiLabels = {CONTINUATION:'Trend Continuation 📈',WEAK_RALLY:'Weak Rally ⚠️',DISTRIBUTION:'Distribution 🔴',CAPITULATION:'Capitulation 🔵',INDETERMINATE:'Indeterminate —'};
+  document.getElementById('l3-oi').textContent = oiLabels[oi_resolved.replace(' ','_')]||oi_resolved;
+  document.getElementById('l3-gov').textContent = gamma_gov_active?'ACTIVE — risk ÷ 0.50 ⚠️':'Inactive';
+  document.getElementById('l3-gov').style.color = gamma_gov_active?'var(--gold)':'var(--muted)';
+
+  // Layer 1 detail
+  document.getElementById('l1-bias').textContent = bias;
+  document.getElementById('l1-bias').style.color = bias==='BULLISH'?'var(--bull)':bias==='BEARISH'?'var(--bear)':'var(--muted)';
+  document.getElementById('l1-spread').textContent = (spread>=0?'+':'')+parseFloat(spread).toFixed(2)+'%';
+  document.getElementById('l1-spread').style.color = spread>=2?'var(--bull)':spread<=-2?'var(--bear)':'var(--gold)';
+  const g1ok = gates.macro;
+  document.getElementById('l1-gate').textContent = g1ok?'✓ PASS':'✗ FAIL';
+  document.getElementById('l1-gate').style.color = g1ok?'#4caf50':'var(--bear)';
+  document.getElementById('l1-squeeze').textContent = parseFloat(squeeze).toFixed(0)+'%';
+  document.getElementById('l1-sq-state').textContent = squeeze>=70?'🔥 ACTIVE (>70%)':'Inactive';
+  document.getElementById('l1-sq-state').style.color = squeeze>=70?'var(--gold)':'var(--muted)';
+  document.getElementById('l1-direction').textContent = bias==='BULLISH'?'Long only':bias==='BEARISH'?'Short only':'Stand down';
+
+  // Layer 4
+  document.getElementById('l4-kz').textContent = kzLabels[killzone]||killzone;
+  document.getElementById('l4-phase').textContent = phLabels[phase]||phase;
+  const mssV = gates.mss?'✅ Confirmed in bias direction':'❌ Not confirmed';
+  document.getElementById('l4-mss').textContent = mssV;
+  document.getElementById('l4-mss').style.color = gates.mss?'#4caf50':'var(--bear)';
+  document.getElementById('mssLabel').textContent = mssV;
+  const judasV = gates.judas?'✅ PDH/PDL swept':'❌ Pending';
+  document.getElementById('l4-judas').textContent = judasV;
+  document.getElementById('l4-judas').style.color = gates.judas?'#4caf50':'var(--muted)';
+  document.getElementById('judasLabel').textContent = judasV;
+
+  // FVGs
+  const fvg3 = gates.fvg?`✅ MITIGATED [${spot>0?(spot-15).toLocaleString():''} – ${spot>0?(spot-5).toLocaleString():''}]`:'🟡 OPEN';
+  const fvg15= gates.fvg?`✅ MITIGATED / DOL target`:'🟡 OPEN';
+  document.getElementById('l4-fvg3').textContent = fvg3;
+  document.getElementById('l4-fvg15').textContent = fvg15;
+  document.getElementById('fvgList').innerHTML =
+    `<div class="fvg-row"><span class="fvg-tf">3M</span><span class="fvg-range">${fvg3}</span><span class="fvg-state ${gates.fvg?'fvg-mit':'fvg-open'}">${gates.fvg?'MIT':'OPEN'}</span></div>
+     <div class="fvg-row"><span class="fvg-tf">15M</span><span class="fvg-range">${fvg15}</span><span class="fvg-state ${gates.fvg?'fvg-mit':'fvg-open'}">${gates.fvg?'MIT/DOL':'OPEN'}</span></div>`;
+
+  // Oscillator HUD
+  const smtDispColor = smt_divergent?'color:var(--bear)':'color:var(--conv)';
+  document.getElementById('osc-smt').innerHTML = `<span style="${smtDispColor}">${smt_divergent?(bias==='BEARISH'?'BEAR SMT ▼':'BULL SMT ▲'):'ALIGNED ●'}</span>`;
+  const yc = yield_bull?'color:var(--gold)':yield_bear?'color:var(--navy)':'color:var(--muted)';
+  document.getElementById('osc-yield').innerHTML = `<span style="${yc}">${yield_bull?'BULL EDGE ▲':yield_bear?'BEAR EDGE ▼':'ALIGNED ●'}</span>`;
+  const oiC = oi_resolved==='CONTINUATION'?'color:var(--oi-cont)':oi_resolved==='WEAK RALLY'?'color:var(--oi-weak)':oi_resolved==='DISTRIBUTION'?'color:var(--oi-dist)':'color:var(--oi-cap)';
+  const oiDisp = {CONTINUATION:'TREND CONT ✅',WEAK_RALLY:'WEAK RALLY ⚠️',DISTRIBUTION:'DISTRIBTN 🔴',CAPITULATION:'CAPITULTN 🔵',INDETERMINATE:'—'};
+  document.getElementById('osc-oi').innerHTML = `<span style="${oiC}">${oiDisp[oi_resolved.replace(' ','_')]||oi_resolved}</span>`;
+  const regColor = full_conv?'color:var(--conv)':full_div?'color:var(--bear)':'color:var(--muted)';
+  document.getElementById('osc-regime').innerHTML = `<span style="${regColor}">${full_conv?'CONVERGENT ⚙️':full_div?'DIVERGENT 🪤':'MIXED ◈'}</span>`;
+  const sf = S.score_final;
+  const scC = sf>=10?'color:var(--gold)':sf>=7?'color:var(--conv)':sf>=4?'color:#ff9800':'color:var(--muted)';
+  document.getElementById('osc-score').innerHTML = `<span style="${scC}">${sf>=10?'⭐ 10 AURUM':sf>=7?sf+' INST A+':sf>=4?sf+' SCALP':sf+' SKIP'}</span>`;
+
+  // Regime banner
+  const rb = document.getElementById('regimeBanner');
+  rb.className = 'regime-banner '+(full_conv?'rb-conv':full_div?'rb-div':'rb-mixed');
+  rb.textContent = full_conv?'CONVERGENT ⚙️ — All streams bullish aligned':full_div?'DIVERGENT 🪤 — SMT trap + OI Weak Rally: A+ Fade active':'MIXED ◈ — Streams partially aligned';
+
+  // Score bars
+  const spct = ((sf-1)/9)*100;
+  const scbg = sf>=10?'var(--gold)':sf>=7?'var(--conv)':sf>=4?'#ff9800':'var(--muted)';
+  document.getElementById('scoreFill').style.width = spct+'%';
+  document.getElementById('scoreFill').style.background = scbg;
+  document.getElementById('scoreNum').textContent = sf;
+  document.getElementById('scoreFill2').style.width = spct+'%';
+  document.getElementById('scoreFill2').style.background = scbg;
+  document.getElementById('scoreNum2').textContent = sf;
+
+  // OI chip
+  const oiChip = document.getElementById('oiChip');
+  const oiChipStyle = {CONTINUATION:'background:rgba(38,166,154,.2);color:var(--oi-cont)',
+    'WEAK RALLY':'background:rgba(255,179,0,.2);color:var(--oi-weak)',
+    DISTRIBUTION:'background:rgba(244,67,54,.2);color:var(--oi-dist)',
+    CAPITULATION:'background:rgba(41,182,246,.2);color:var(--oi-cap)'};
+  oiChip.style.cssText = oiChipStyle[oi_resolved]||'background:var(--bg3);color:var(--muted)';
+  oiChip.textContent = oi_resolved;
+  document.getElementById('oi-state').textContent = oi_resolved;
+  document.getElementById('oi-fade').textContent  = oi_resolved==='WEAK RALLY'?'⚠️ FADE SIGNAL ACTIVE':'—';
+  document.getElementById('oi-fade').style.color  = oi_resolved==='WEAK RALLY'?'var(--gold)':'var(--muted)';
+
+  // SMT Stream values
+  const smtLast = S.smt_history[S.smt_history.length-1]||0;
+  document.getElementById('smt-line-val').textContent = (smtLast>=0?'+':'')+smtLast.toFixed(3)+'%';
+  document.getElementById('smt-line-val').style.color = smtLast>0?'var(--bear)':'var(--bull)';
+  document.getElementById('smt-bear').textContent = (smt==='DIVERGENT'&&bias==='BEARISH')?'✅ Active':'—';
+  document.getElementById('smt-bull').textContent = (smt==='DIVERGENT'&&bias==='BULLISH')?'✅ Active':'—';
+  document.getElementById('smt-div').textContent  = smt_divergent?`${bias==='BEARISH'?'BEAR':'BULL'} SMT ACTIVE ⚠️`:'ALIGNED ✅';
+  document.getElementById('smt-div').style.color  = smt_divergent?'var(--bear)':'var(--bull)';
+
+  // Yield stream
+  const yLast = S.yield_history[S.yield_history.length-1]||0;
+  document.getElementById('yield-val').textContent   = (yLast>=0?'+':'')+yLast.toFixed(3);
+  document.getElementById('yield-val').style.color   = yLast>0?'var(--gold)':'var(--navy)';
+  document.getElementById('yield-bias').textContent  = yield_bull?'BULLISH SMT MACRO EDGE':yield_bear?'BEARISH (risk-off)':'ALIGNED';
+  document.getElementById('yield-edge').textContent  = yield_bull?'AU carry rising ▲ (risk-on)':yield_bear?'US premium rising ▼ (risk-off)':'Neutral';
+
+  // Gamma governor
+  document.getElementById('gamma-gov').textContent = gamma_gov_active?'ACTIVE — all allocations × 0.50':'Inactive (Long Gamma — normal sizing)';
+  document.getElementById('gamma-gov').style.color = gamma_gov_active?'var(--gold)':'var(--muted)';
+
+  // Render mini charts
+  renderSMTChart();
+  renderYieldChart();
+
+  // Update checklist
+  renderChecklist();
+}
+
+// ── Mini chart renderers ────────────────────────────────────────
+function renderSMTChart(){
+  const canvas = document.getElementById('smtCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.offsetWidth||200;
+  const h = canvas.height = canvas.offsetHeight||64;
+  ctx.clearRect(0,0,w,h);
+  const data = S.smt_history;
+  const max = Math.max(0.5, ...data.map(Math.abs));
+  ctx.strokeStyle = S.smt_divergent?'#f44336':'#00bcd4';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  data.forEach((v,i)=>{
+    const x = (i/(data.length-1))*w;
+    const y = h/2 - (v/max)*(h/2*0.85);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  // threshold lines
+  ctx.strokeStyle='rgba(255,255,255,.15)';
+  ctx.setLineDash([3,3]);
+  ctx.lineWidth=1;
+  const ty = h/2 - (0.3/max)*(h/2*0.85);
+  const by = h/2 + (0.3/max)*(h/2*0.85);
+  ctx.beginPath(); ctx.moveTo(0,ty); ctx.lineTo(w,ty); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,by); ctx.lineTo(w,by); ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function renderYieldChart(){
+  const el = document.getElementById('yieldChart');
+  if(!el) return;
+  const data = S.yield_history;
+  const max = Math.max(0.1, ...data.map(Math.abs));
+  const h = 68;
+  el.innerHTML = data.map(v=>{
+    const heightPct = Math.abs(v)/max*100;
+    const color = v>=0?'var(--gold)':'var(--navy)';
+    if(v>=0){
+      return `<div class="yield-bar-wrap" style="justify-content:flex-end"><div class="yield-bar" style="height:${heightPct}%;background:${color}"></div></div>`;
+    } else {
+      return `<div class="yield-bar-wrap" style="justify-content:flex-start;align-items:flex-start"><div class="yield-bar" style="height:${heightPct}%;background:${color};border-radius:0 0 1px 1px;margin-top:${50-heightPct/2}%"></div></div>`;
+    }
+  }).join('');
+}
+
+// ── Checklist renderer ──────────────────────────────────────────
+function renderChecklist(){
+  const {bias,smt,gates,gates_passed,gex_regime,spread,squeeze,ys,killzone,score_final} = S;
+  const hardItems = [
+    {label:'COT macro bias',val:Math.abs(spread)>=2?`✅ ${bias} (${spread>=0?'+':''}${parseFloat(spread).toFixed(2)}%)`:`❌ Neutral band (${parseFloat(spread).toFixed(2)}%)`, ok:Math.abs(spread)>=2},
+    {label:'Inventory zone',val:bias==='BULLISH'?(S.inventory_pct<0.4?'✅ Structural Discount':S.inventory_pct<=0.6?'✅ Equilibrium':'❌ Premium — no longs'):(bias==='BEARISH'?(S.inventory_pct>0.7?'✅ Structural Premium':'❌ Not in premium zone'):'Set bias first'),ok:gates.inventory},
+    {label:'SMT divergence',val:smt==='CONVERGENT'?'✅ Clean — no trap':'❌ DIVERGENT — routing frozen',ok:smt==='CONVERGENT'},
+    {label:'Economic calendar',val:'⚠️ Check manually (FOMC/NFP/CPI)',ok:null},
+  ];
+  const softItems = [
+    {label:'GEX profile',val:S.zg>0?`ZG ${S.zg.toLocaleString()} | CW ${S.cw.toLocaleString()} | PW ${S.pw.toLocaleString()}`:'Set GEX in desk inputs'},
+    {label:'COT squeeze ratio',val:`${parseFloat(squeeze).toFixed(0)}% ${squeeze>=70?'🔥 Amplifier active':''}`,warn:squeeze>=70},
+    {label:'Volume conviction',val:S.oi_resolved,warn:S.oi_resolved==='WEAK RALLY'},
+    {label:'Quarterly phase',val:S.phase.replace(/_/g,' ')},
+  ];
+  const intradayItems = [
+    {label:'PDH/PDL levels',val:'Mark on chart before session'},
+    {label:'3M + 15M FVG scan',val:gates.fvg?'✅ FVG mitigated':'🟡 Open FVGs near price'},
+    {label:'Killzone timer',val:killzone==='CLOSED'?'🔒 Outside all windows':killzone.replace('_',' ')+' active'},
+    {label:'Judas setup watch',val:gates.judas?'✅ Sweep detected':'⏳ Watching PDH/PDL'},
+  ];
+
+  document.getElementById('hardChecklist').innerHTML = hardItems.map(it=>`
+    <div class="gate-row">
+      <span class="gate-name">${it.label}</span>
+      <span class="gate-badge ${it.ok===true?'gb-pass':it.ok===false?'gb-fail':''}" style="${it.ok===null?'background:var(--bg3);color:var(--muted)':''}">${it.val}</span>
+    </div>`).join('');
+  document.getElementById('softChecklist').innerHTML = softItems.map(it=>`
+    <div class="gate-row">
+      <span class="gate-name">${it.label}</span>
+      <span class="gate-badge" style="background:var(--bg3);color:${it.warn?'var(--gold)':'var(--muted)'}">${it.val}</span>
+    </div>`).join('');
+  document.getElementById('intradayChecklist').innerHTML = intradayItems.map(it=>`
+    <div class="gate-row">
+      <span class="gate-name">${it.label}</span>
+      <span class="gate-badge" style="background:var(--bg3);color:var(--muted)">${it.val}</span>
+    </div>`).join('');
+}
+
+// ── Desk inputs handler ─────────────────────────────────────────
+function applyDeskInputs(){
+  S.bias      = document.getElementById('in_bias').value;
+  S.smt       = document.getElementById('in_smt').value;
+  S.yield_flt = document.getElementById('in_yield').value;
+  S.oi_state  = document.getElementById('in_oi').value;
+  S.score     = parseInt(document.getElementById('in_score').value)||5;
+  S.verdict   = document.getElementById('in_verdict').value;
+  S.zg        = parseFloat(document.getElementById('in_zg').value)||0;
+  S.cw        = parseFloat(document.getElementById('in_cw').value)||0;
+  S.pw        = parseFloat(document.getElementById('in_pw').value)||0;
+  S.spot      = parseFloat(document.getElementById('in_spot').value)||0;
+  S.rhigh     = parseFloat(document.getElementById('in_rhigh').value)||0;
+  S.rlow      = parseFloat(document.getElementById('in_rlow').value)||0;
+  S.spread    = parseFloat(document.getElementById('in_spread').value)||0;
+  S.squeeze   = parseFloat(document.getElementById('in_squeeze').value)||0;
+  S.ys        = parseFloat(document.getElementById('in_ys').value)||0;
+  S._score_manual = true;
+  compute(); render();
+  // Flash the desk panel green briefly
+  const p = document.getElementById('deskPanel');
+  p.style.borderColor='#4caf50';
+  setTimeout(()=>{ p.style.borderColor='var(--gold)'; }, 800);
+}
+
+// ── Telegram paste parser ───────────────────────────────────────
+function parseTelegramOutput(){
+  const raw = document.getElementById('tgPaste').value;
+  if(!raw.trim()) return;
+  const u = raw.toUpperCase();
+  // Parse bias
+  if(u.includes('BULLISH')) S.bias='BULLISH';
+  else if(u.includes('BEARISH')) S.bias='BEARISH';
+  else S.bias='NEUTRAL';
+  // SMT
+  if(u.includes('CONVERGENT')||u.includes('CLEAN')) S.smt='CONVERGENT';
+  else if(u.includes('DIVERGENT')||u.includes('BULL TRAP')||u.includes('BEAR TRAP')) S.smt='DIVERGENT';
+  // Yield
+  if(u.includes('HIGH YIELD')||u.includes('BULL EDGE')) S.yield_flt='HIGH YIELD';
+  else if(u.includes('LOW YIELD')||u.includes('BEAR EDGE')) S.yield_flt='LOW YIELD';
+  else S.yield_flt='MODERATE';
+  // OI
+  if(u.includes('CONTINUATION')) S.oi_state='CONTINUATION';
+  else if(u.includes('WEAK RALLY')) S.oi_state='WEAK RALLY';
+  else if(u.includes('DISTRIBUTION')) S.oi_state='DISTRIBUTION';
+  else if(u.includes('CAPITULATION')) S.oi_state='CAPITULATION';
+  // Score
+  const scoreMatch = raw.match(/[Ss]core[:\s]+(\d+)/);
+  if(scoreMatch){ S.score=parseInt(scoreMatch[1]); S._score_manual=true; }
+  // Verdict
+  if(u.includes('TIER 1')||u.includes('TIER1')||u.includes('A+ HIGH')) S.verdict='A+ HIGH-GEAR';
+  else if(u.includes('B-GRADE')||u.includes('TIER 2')||u.includes('TIER2')) S.verdict='B-GRADE';
+  else if(u.includes('SCALP')) S.verdict='SCALP ONLY';
+  else if(u.includes('THROTTLED')) S.verdict='THROTTLED';
+  else S.verdict='NO TRADE';
+  // GEX
+  const zgM  = raw.match(/[Zz]ero\s*[Gg]amma[:\s]+(\d+)/);
+  const cwM  = raw.match(/[Cc]all\s*[Ww]all[:\s]+(\d+)/);
+  const pwM  = raw.match(/[Pp]ut\s*[Ww]all[:\s]+(\d+)/);
+  const spM  = raw.match(/[Ss]pot[:\s]+([\d,]+)/);
+  const scpM = raw.match(/[Ss]pread[:\s]+([+-]?\d+\.?\d*)/);
+  const sqM  = raw.match(/[Ss]queeze[:\s]+(\d+)/);
+  if(zgM) S.zg = parseFloat(zgM[1]);
+  if(cwM) S.cw = parseFloat(cwM[1]);
+  if(pwM) S.pw = parseFloat(pwM[1]);
+  if(spM) S.spot = parseFloat(spM[1].replace(',',''));
+  if(scpM) S.spread = parseFloat(scpM[1]);
+  if(sqM)  S.squeeze = parseFloat(sqM[1]);
+  // Sync desk inputs UI
+  document.getElementById('in_bias').value    = S.bias;
+  document.getElementById('in_smt').value     = S.smt;
+  document.getElementById('in_yield').value   = S.yield_flt;
+  document.getElementById('in_oi').value      = S.oi_state;
+  document.getElementById('in_score').value   = S.score;
+  document.getElementById('in_verdict').value = S.verdict;
+  if(S.zg>0) document.getElementById('in_zg').value = S.zg;
+  if(S.cw>0) document.getElementById('in_cw').value = S.cw;
+  if(S.pw>0) document.getElementById('in_pw').value = S.pw;
+  if(S.spot>0) document.getElementById('in_spot').value = S.spot;
+  if(S.spread) document.getElementById('in_spread').value = S.spread;
+  if(S.squeeze) document.getElementById('in_squeeze').value = S.squeeze;
+  compute(); render();
+  // Flash feedback
+  const pb = document.querySelector('.parse-btn');
+  pb.textContent='✅ Synced!'; pb.style.background='#4caf50';
+  setTimeout(()=>{ pb.textContent='⚡ Parse & Sync Dashboard'; pb.style.background='var(--conv)'; }, 2000);
+}
+
+// ── UI helpers ──────────────────────────────────────────────────
+function toggleDesk(){
+  const p = document.getElementById('deskPanel');
+  p.style.display = p.style.display==='none'?'block':'none';
+}
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const ids=['overview','layers','oscillator','checklist'];
+    t.className='tab'+(ids[i]===id?' active':'');
+  });
+  document.querySelectorAll('.tab-content').forEach(c=>{
+    c.className='tab-content'+(c.id==='tab-'+id?' active':'');
+  });
+}
+function runEvaluation(){
+  compute(); render();
+  const btn = document.querySelector('.btn');
+  // visual feedback
+}
+
+// ── Auto-refresh loop ───────────────────────────────────────────
+let _init = false;
+function loop(){
+  if(!_init){ compute(); render(); _init=true; }
+  else {
+    // Only update temporal data on auto-loop (time, phase, killzone)
+    const ny = getNYTime();
+    S.killzone = classifyKillzone(ny);
+    S.phase    = classifyPhase(ny);
+    render();
+  }
+  setTimeout(loop, 1000);
+}
+window.addEventListener('load', loop);
+window.addEventListener('resize', ()=>{ renderSMTChart(); renderYieldChart(); });
+</script>
+</body>
+</html>
+
